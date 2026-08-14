@@ -133,7 +133,7 @@ export default function EnviarInformativo() {
 
       // 2. Upload com progresso real.
       const nomeArmazenado = sanitizarNome(midia.arquivo);
-      const caminho = caminhoStorage(id, nomeArmazenado);
+      const caminho = caminhoStorage(user.uid, id, nomeArmazenado);
 
       const { promessa } = enviarArquivo({
         caminho,

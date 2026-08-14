@@ -13,6 +13,7 @@
 import '../api/_lib/carregarEnv.js';
 import { db, FieldValue } from '../api/_lib/firebaseAdmin.js';
 import { dominioPermitido, normalizarEmail } from '../api/_lib/dominio.js';
+import { sincronizarClaim } from '../api/_lib/claims.js';
 
 const PADROES_MIDIA = `ESPECIFICACOES PARA AS TVs DO CAMPUS
 
@@ -75,6 +76,10 @@ async function main() {
       ? `Administrador atualizado: ${email}`
       : `Administrador criado: ${email}`
   );
+
+  // O perfil precisa chegar ao token: as regras do Storage leem de la.
+  const claim = await sincronizarClaim(email);
+  console.log(`Perfil no token: ${claim.motivo}`);
 
   // 2. Configuracoes do sistema (nao sobrescreve valores ja ajustados)
   const sistemaRef = db.collection('configuracoes').doc('sistema');

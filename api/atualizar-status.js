@@ -3,6 +3,7 @@ import { autenticarCron, responderErro } from './_lib/autenticar.js';
 import { atribuirProtocolo } from './_lib/protocolo.js';
 import { emailResumoDiario } from './_lib/emailTemplates.js';
 import { enviarEmail, destinatariosAdmin, appUrl } from './_lib/email.js';
+import { sincronizarTodos } from './_lib/claims.js';
 
 /**
  * Cron diario — 0 6 * * * (03:00 de Brasilia).
@@ -43,6 +44,7 @@ export default async function handler(req, res) {
     await protocolosPendentes(resumo);
     await limparRascunhos(resumo);
     await expurgarArquivos(hoje, resumo);
+    await reconciliarPerfis(resumo);
     await enviarResumo(hoje, resumo);
   } catch (erro) {
     console.error('[cron] falha:', erro);
@@ -185,6 +187,22 @@ async function expurgarArquivos(hoje, resumo) {
     await doc.ref.update({ arquivoExpurgadoEm: FieldValue.serverTimestamp() });
     await registrarLog(doc.ref, 'arquivo_expurgado', null, null, `retenção de ${dias} dias`);
     resumo.arquivosExpurgados += 1;
+  }
+}
+
+/**
+ * Rede de seguranca do perfil no token.
+ *
+ * A tela de Acessos ja sincroniza na hora, mas se aquela chamada falhar (rede,
+ * aba fechada no meio) o perfil ficaria divergente ate alguem notar. Aqui a
+ * whitelist e o token voltam a bater todo dia.
+ */
+async function reconciliarPerfis(resumo) {
+  try {
+    const r = await sincronizarTodos();
+    resumo.perfisAjustados = r.filter((x) => x.motivo === 'atualizado').length;
+  } catch (erro) {
+    resumo.erros.push(`perfis: ${erro.message}`);
   }
 }
 

@@ -39,6 +39,16 @@ export function ProvedorAuth({ children }) {
       }
 
       try {
+        // Forca a renovacao do token para trazer o perfil atualizado.
+        // As regras do Storage leem o perfil do token, nao do Firestore: sem
+        // isto, quem acabou de ser promovido a admin nao conseguiria abrir a
+        // midia dos outros ate o token expirar sozinho.
+        try {
+          await usuarioFirebase.getIdToken(true);
+        } catch {
+          // Token revogado (rebaixamento): o SDK encerra a sessao sozinho.
+        }
+
         const resultado = await resolverAcesso(usuarioFirebase);
         setAcesso(resultado);
 

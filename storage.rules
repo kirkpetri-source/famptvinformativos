@@ -3,12 +3,19 @@ rules_version = '2';
 // =============================================================================
 // FAMP TV Informativos — regras do Storage
 //
-// Leitura restrita ao dono e ao admin, espelhando a regra do Firestore.
-// Liberar para todo o dominio deixaria qualquer colaborador ler a midia dos
-// outros sabendo o caminho.
+// POR QUE O UID ESTA NO CAMINHO
 //
-// O documento em /informativos e criado ANTES do upload — por isso a regra
-// pode consultar o Firestore para saber de quem e a pasta.
+// A versao anterior perguntava ao Firestore de quem era a pasta:
+//   firestore.get(/databases/(default)/documents/informativos/$(docId))
+// Regras cruzadas Storage -> Firestore exigem uma permissao IAM no agente de
+// servico do Cloud Storage que nao vem habilitada por padrao, e o upload
+// falhava com 403 sem dizer o motivo.
+//
+// Com o uid no caminho, a mesma garantia sai de graca e sem dependencia
+// externa: so escreve na sua pasta quem e dono dela.
+//
+// Para o admin ler a midia dos outros, o perfil vai no token como custom
+// claim (`admin`), sincronizado pelo Admin SDK a cada mudanca de acesso.
 // =============================================================================
 
 service firebase.storage {
@@ -23,28 +30,22 @@ service firebase.storage {
             || request.auth.token.email.lower() == 'liontech.sup@gmail.com');
     }
 
-    function donoDoDocumento(docId) {
-      return firestore.get(/databases/(default)/documents/informativos/$(docId))
-               .data.enviadoPor.uid == request.auth.uid;
+    function isAdmin() {
+      return request.auth.token.admin == true;
     }
 
-    function isAdminStorage() {
-      return firestore.get(/databases/(default)/documents/usuarios_autorizados/$(request.auth.token.email.lower()))
-               .data.perfil == 'admin';
-    }
-
-    match /informativos/{ano}/{mes}/{docId}/{arquivo} {
+    match /informativos/{uid}/{ano}/{mes}/{docId}/{arquivo} {
 
       allow read: if dominioPermitido()
-        && (donoDoDocumento(docId) || isAdminStorage());
+        && (request.auth.uid == uid || isAdmin());
 
       // Teto absoluto de 80 MB: a regra nao le configuracao, entao os limites
       // por tipo (imagem 15, video 70, PDF 20) sao aplicados na aplicacao,
       // antes do upload.
       allow create: if dominioPermitido()
+        && request.auth.uid == uid
         && request.resource.size <= 80 * 1024 * 1024
-        && request.resource.contentType.matches('(image/(jpeg|png)|video/mp4|application/pdf)')
-        && donoDoDocumento(docId);
+        && request.resource.contentType.matches('(image/(jpeg|png)|video/mp4|application/pdf)');
 
       // Sem sobrescrita e sem exclusao pelo cliente.
       // O expurgo e feito pelo Admin SDK no cron, que ignora estas regras.

@@ -18,6 +18,7 @@
 import '../api/_lib/carregarEnv.js';
 import { db, FieldValue } from '../api/_lib/firebaseAdmin.js';
 import { dominioPermitido, normalizarEmail } from '../api/_lib/dominio.js';
+import { sincronizarClaim } from '../api/_lib/claims.js';
 
 const [acao, emailBruto, perfilBruto] = process.argv.slice(2);
 
@@ -69,11 +70,14 @@ async function liberar(email, perfil) {
     { merge: true }
   );
 
+  const claim = await sincronizarClaim(email);
+
   console.log(
     existente.exists
       ? `Acesso atualizado: ${email} -> ${perfil}`
       : `Acesso liberado: ${email} -> ${perfil}`
   );
+  console.log(`Perfil no token: ${claim.motivo}`);
   console.log('A pessoa completa o cadastro no primeiro login.');
 }
 
@@ -95,6 +99,10 @@ async function remover(email) {
   await db.collection('usuarios_autorizados').doc(email).delete();
   const cadastro = await db.collection('usuarios').where('email', '==', email).get();
   for (const doc of cadastro.docs) await doc.ref.delete();
+
+  // Tira o admin do token tambem: sem isto a conta continuaria enxergando a
+  // midia dos outros ate o token expirar.
+  await sincronizarClaim(email);
 
   console.log(`Acesso e cadastro removidos: ${email}`);
 }

@@ -60,11 +60,18 @@ export function nomeDaMidia(informativo) {
   return nomePadronizado(informativo).replace(/\.[^.]+$/, '');
 }
 
-/** Caminho no Storage. O documento e criado antes, para termos o id. */
-export function caminhoStorage(docId, nomeArmazenado, quando = new Date()) {
+/**
+ * Caminho no Storage. O documento e criado antes, para termos o id.
+ *
+ * O uid vem primeiro no caminho de proposito: e o que permite a regra do
+ * Storage garantir que ninguem escreva na pasta de outro, sem precisar
+ * consultar o Firestore (regra cruzada exige uma permissao IAM que nao vem
+ * habilitada e faz o upload falhar com 403).
+ */
+export function caminhoStorage(uid, docId, nomeArmazenado, quando = new Date()) {
   const ano = quando.getFullYear();
   const mes = String(quando.getMonth() + 1).padStart(2, '0');
-  return `informativos/${ano}/${mes}/${docId}/${nomeArmazenado}`;
+  return `informativos/${uid}/${ano}/${mes}/${docId}/${nomeArmazenado}`;
 }
 
 /** Normaliza titulo para a busca por prefixo do Firestore. */

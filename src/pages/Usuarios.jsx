@@ -5,6 +5,7 @@ import { useToast } from '../hooks/useToast.jsx';
 import EstadoVazio from '../components/EstadoVazio.jsx';
 import { ListaSkeleton } from '../components/Carregando.jsx';
 import { listarAcessos, adicionarAutorizado, alterarAcesso } from '../services/usuarios.js';
+import { sincronizarAcesso } from '../services/api.js';
 import { dominioPermitido, ehContaDeTeste, DOMINIO_INSTITUCIONAL } from '../utils/dominio.js';
 import { formatarDataHora } from '../utils/datas.js';
 import { mascararWhatsapp } from '../utils/arquivos.js';
@@ -46,6 +47,11 @@ export default function Usuarios() {
     setSalvando(true);
     try {
       await adicionarAutorizado(novo.email, novo.perfil, acesso.email);
+      try {
+        await sincronizarAcesso(novo.email);
+      } catch (e) {
+        console.error('Sincronização do perfil no token falhou:', e);
+      }
       toast.sucesso('Acesso liberado.');
       setNovo({ email: '', perfil: 'colaborador' });
       carregar();
@@ -59,6 +65,15 @@ export default function Usuarios() {
   async function alterar(item, mudanca) {
     try {
       await alterarAcesso(item.email, mudanca);
+
+      // O perfil precisa chegar ao token: as regras do Storage leem de la, nao
+      // do Firestore. Falhar aqui nao desfaz a alteracao — o cron reconcilia.
+      try {
+        await sincronizarAcesso(item.email);
+      } catch (e) {
+        console.error('Sincronização do perfil no token falhou:', e);
+      }
+
       toast.sucesso('Acesso atualizado.');
       carregar();
     } catch (e) {

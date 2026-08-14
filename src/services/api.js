@@ -40,3 +40,13 @@ export async function notificarEnvio(docId) {
 export function notificarDecisao(docId, decisao) {
   return chamar('/api/notificar-decisao', { docId, decisao });
 }
+
+/**
+ * Propaga o perfil da whitelist para o custom claim do token.
+ *
+ * As regras do Storage leem o perfil do token, nao do Firestore. Sem esta
+ * chamada, quem foi promovido a admin nao consegue abrir a midia dos outros.
+ */
+export function sincronizarAcesso(email) {
+  return chamar('/api/sincronizar-acesso', { email });
+}
