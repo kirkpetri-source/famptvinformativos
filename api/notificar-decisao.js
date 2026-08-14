@@ -67,9 +67,9 @@ export default async function handler(req, res) {
     });
 
     const assuntos = {
-      aprovado: `[FAMP TV] Aprovado: "${info.titulo}"`,
-      rejeitado: `[FAMP TV] Não aprovado: "${info.titulo}"`,
-      cancelado: `[FAMP TV] Retirado do ar: "${info.titulo}"`,
+      aprovado: `Seu informativo foi aprovado — ${info.protocolo}`,
+      rejeitado: `Seu informativo precisa de ajustes — ${info.protocolo}`,
+      cancelado: `Seu informativo saiu do ar — ${info.protocolo}`,
     };
 
     await enviarEmail({ para: destino, assunto: assuntos[decisao], html });

@@ -1,11 +1,19 @@
-import { useEffect, useState, useMemo } from 'react';
-import { FileDown, FileText } from 'lucide-react';
+import { useEffect, useState, useMemo, Fragment } from 'react';
+import { FileDown, FileText, ChevronDown, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useToast } from '../hooks/useToast.jsx';
 import EstadoVazio from '../components/EstadoVazio.jsx';
 import { ListaSkeleton } from '../components/Carregando.jsx';
 import { listarInformativos } from '../services/informativos.js';
 import { listarRemetentes } from '../services/usuarios.js';
-import { exportarCSV, exportarPDF, montarLinhas, COLUNAS } from '../utils/exportar.js';
+import {
+  exportarCSV,
+  exportarPDF,
+  montarLinhas,
+  COLUNAS,
+  COLUNAS_PRINCIPAIS,
+  TITULO_COLUNA,
+} from '../utils/exportar.js';
 import { hojeISO } from '../utils/datas.js';
 import { STATUS_VISIVEIS, TEXTO_STATUS } from '../utils/status.js';
 
@@ -17,6 +25,7 @@ export default function Relatorio() {
   const [remetentes, setRemetentes] = useState([]);
   const [pagina, setPagina] = useState(1);
   const [exportando, setExportando] = useState(false);
+  const [aberta, setAberta] = useState(null);
 
   const [filtros, setFiltros] = useState({
     de: '',
@@ -179,20 +188,58 @@ export default function Relatorio() {
             <table>
               <thead>
                 <tr>
-                  {COLUNAS.map((c) => (
-                    <th key={c.chave}>{c.titulo}</th>
+                  <th style={{ width: 36 }}>
+                    <span className="so-leitor">Detalhes</span>
+                  </th>
+                  {COLUNAS_PRINCIPAIS.map((chave) => (
+                    <th key={chave}>{TITULO_COLUNA[chave]}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {visiveis.map((linha) => (
-                  <tr key={linha.numero}>
-                    {COLUNAS.map((c) => (
-                      <td key={c.chave} style={{ whiteSpace: 'nowrap' }}>
-                        {String(linha[c.chave] ?? '')}
+                  <Fragment key={linha.numero}>
+                    <tr>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAberta(aberta === linha.numero ? null : linha.numero)
+                          }
+                          aria-expanded={aberta === linha.numero}
+                          aria-label={`Detalhes de ${linha.titulo}`}
+                          style={{ display: 'flex', padding: 4, color: 'var(--famp-gray)' }}
+                        >
+                          {aberta === linha.numero ? (
+                            <ChevronDown size={16} />
+                          ) : (
+                            <ChevronRight size={16} />
+                          )}
+                        </button>
                       </td>
-                    ))}
-                  </tr>
+                      {COLUNAS_PRINCIPAIS.map((chave) => (
+                        <td
+                          key={chave}
+                          style={{
+                            whiteSpace: chave === 'titulo' ? 'normal' : 'nowrap',
+                            minWidth: chave === 'titulo' ? 200 : undefined,
+                            fontFamily:
+                              chave === 'protocolo' ? 'var(--fonte-meta)' : undefined,
+                          }}
+                        >
+                          {String(linha[chave] ?? '')}
+                        </td>
+                      ))}
+                    </tr>
+
+                    {aberta === linha.numero ? (
+                      <tr>
+                        <td colSpan={COLUNAS_PRINCIPAIS.length + 1} style={{ padding: 0 }}>
+                          <Detalhe linha={linha} />
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -232,6 +279,35 @@ function Campo({ rotulo, children }) {
     <div>
       <span className="rotulo">{rotulo}</span>
       {children}
+    </div>
+  );
+}
+
+/**
+ * Tudo que nao cabe na linha. Aparece so quando o auditor pede, e continua
+ * saindo por completo no CSV e no PDF — onde o excesso nao atrapalha.
+ */
+function Detalhe({ linha }) {
+  const escondidas = COLUNAS.filter(
+    (c) => !COLUNAS_PRINCIPAIS.includes(c.chave) && String(linha[c.chave] ?? '') !== ''
+  );
+
+  return (
+    <div className="detalhe-linha">
+      <dl className="detalhe-linha__grade">
+        {escondidas.map((c) => (
+          <div key={c.chave}>
+            <dt className="meta">{c.titulo}</dt>
+            <dd>{String(linha[c.chave])}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {linha.id ? (
+        <Link to={`/informativos/${linha.id}`} className="btn btn--secundario mt-4">
+          Abrir o informativo
+        </Link>
+      ) : null}
     </div>
   );
 }

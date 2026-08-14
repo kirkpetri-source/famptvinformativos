@@ -171,6 +171,52 @@ export function emailNovoEnvio({ info, periodo, conformidade, linkArquivo, appUr
   return moldura(corpo, appUrl);
 }
 
+/**
+ * Confirmacao de recebimento -> quem enviou.
+ *
+ * Existe para o colaborador nao ficar no escuro. Antes, quem enviava so tinha
+ * noticia do sistema quando a decisao saia — e nesse intervalo a duvida
+ * "sera que foi?" volta a virar mensagem no WhatsApp da coordenacao, que e
+ * exatamente o que este sistema veio acabar.
+ */
+export function emailEnvioRecebido({ info, periodo, appUrl }) {
+  const corpo = `
+  <tr><td style="padding:20px 24px 0;">
+    <p style="margin:0 0 4px;font-size:12px;letter-spacing:.04em;color:${COR.cinza};">${escapar(
+      info.protocolo || ''
+    )}</p>
+    <h1 style="margin:0 0 16px;font-size:20px;line-height:1.25;color:${COR.marromEscuro};">
+      Recebemos seu informativo
+    </h1>
+
+    <p style="margin:0 0 20px;font-size:15px;color:${COR.marrom};">
+      <strong>${escapar(info.titulo)}</strong>
+    </p>
+
+    <p style="margin:0 0 16px;padding:12px;background:#E3F5EA;border-left:3px solid ${COR.sucesso};
+       font-size:14px;color:${COR.sucesso};">
+      Seu arquivo chegou e está na fila de análise da coordenação. Você recebe um novo
+      e-mail assim que houver uma decisão.
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      ${linha('Período solicitado', escapar(periodo), true)}
+      ${linha('Arquivo', escapar(info.nomeArquivo))}
+      ${linha('Protocolo', escapar(info.protocolo))}
+    </table>
+
+    <p style="margin:20px 0 0;font-size:13px;color:${COR.cinza};">
+      Guarde o número do protocolo: é por ele que a coordenação localiza seu envio.
+    </p>
+  </td></tr>
+
+  <tr><td style="padding:20px 24px;">
+    ${botao('Acompanhar meus envios', `${appUrl}/meus-envios`)}
+  </td></tr>`;
+
+  return moldura(corpo, appUrl);
+}
+
 /** Decisao -> remetente. */
 export function emailDecisao({ info, periodo, decisao, motivo, observacao, appUrl, padroes }) {
   const aprovado = decisao === 'aprovado';
@@ -199,7 +245,9 @@ export function emailDecisao({ info, periodo, decisao, motivo, observacao, appUr
       aprovado
         ? `<p style="margin:0 0 16px;padding:12px;background:#E3F5EA;border-left:3px solid ${COR.sucesso};
              font-size:14px;color:${COR.sucesso};">
-             A exibição começa em ${escapar(periodo)}.
+             Está tudo certo com a sua arte. Ela vai para as telas do campus no
+             período de ${escapar(periodo)}.<br /><br />
+             Não é preciso fazer mais nada.
            </p>`
         : `<p style="margin:0 0 16px;padding:12px;background:${
             cancelado ? '#FDF2E0' : '#FDECEC'

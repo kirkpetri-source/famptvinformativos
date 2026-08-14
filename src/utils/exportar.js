@@ -4,6 +4,24 @@ import { formatarData, formatarDataHora, timecode, diasDePeriodo } from './datas
 import { TEXTO_STATUS, MOTIVO_REJEICAO } from './status.js';
 import { resumoConformidade } from './midia.js';
 
+/**
+ * O que aparece na tabela sem precisar abrir nada.
+ *
+ * Vinte e cinco colunas na tela nao sao auditoria, sao ruido: ninguem le uma
+ * linha que rola de lado. Estas sete respondem "quem mandou o que, para
+ * quando, e como esta". O resto abre no detalhe da linha, e a exportacao
+ * continua levando tudo — la o excesso nao atrapalha.
+ */
+export const COLUNAS_PRINCIPAIS = [
+  'numero',
+  'protocolo',
+  'enviadoEm',
+  'nome',
+  'titulo',
+  'periodo',
+  'status',
+];
+
 export const COLUNAS = [
   { chave: 'numero', titulo: 'Nº' },
   { chave: 'protocolo', titulo: 'Protocolo' },
@@ -32,11 +50,18 @@ export const COLUNAS = [
   { chave: 'retiradoEm', titulo: 'Retirado em' },
 ];
 
+/** Rotulo de cada coluna, para o cabecalho e para o painel de detalhe. */
+export const TITULO_COLUNA = Object.fromEntries(
+  [...COLUNAS, { chave: 'periodo', titulo: 'Período' }].map((c) => [c.chave, c.titulo])
+);
+
 export function montarLinhas(informativos) {
   return informativos.map((i, indice) => ({
+    id: i.id,
     numero: indice + 1,
     protocolo: i.protocolo || '',
     enviadoEm: formatarDataHora(i.enviadoEm),
+    periodo: `${formatarData(i.dataInicio)} → ${formatarData(i.dataFim)}`,
     nome: i.enviadoPor?.nome || '',
     cargo: i.enviadoPor?.cargo || '',
     email: i.enviadoPor?.email || '',

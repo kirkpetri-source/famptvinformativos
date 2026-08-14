@@ -1121,6 +1121,29 @@ textarea[aria-invalid='true'] {
   margin: 0 auto var(--e-3);
 }
 
+/* Detalhe expandido de uma linha do relatorio */
+.detalhe-linha {
+  padding: var(--e-4) var(--e-6);
+  background: var(--famp-bg-warm);
+  border-top: var(--regua);
+}
+
+.detalhe-linha__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--e-3) var(--e-6);
+}
+
+.detalhe-linha__grade dt {
+  margin-bottom: 2px;
+}
+
+.detalhe-linha__grade dd {
+  font-size: var(--tipo-14);
+  color: var(--famp-brown-dark);
+  word-break: break-word;
+}
+
 /* Ficha de especificacao — pares rotulo/valor separados por regua */
 .ficha {
   background: var(--famp-white);

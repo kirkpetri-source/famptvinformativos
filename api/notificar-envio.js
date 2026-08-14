@@ -1,7 +1,7 @@
 import { db, FieldValue } from './_lib/firebaseAdmin.js';
 import { autenticar, responderErro, ErroHttp } from './_lib/autenticar.js';
 import { atribuirProtocolo } from './_lib/protocolo.js';
-import { emailNovoEnvio } from './_lib/emailTemplates.js';
+import { emailNovoEnvio, emailEnvioRecebido } from './_lib/emailTemplates.js';
 import {
   enviarEmail,
   destinatariosAdmin,
@@ -9,6 +9,7 @@ import {
   linkAssinado,
   anexoSeCouber,
 } from './_lib/email.js';
+import { avisarWhatsapp, textoNovoEnvio } from './_lib/whatsapp.js';
 
 /**
  * Chamada pelo cliente logo apos o envio.
@@ -64,35 +65,52 @@ export default async function handler(req, res) {
       anexoSeCouber(info.caminhoStorage, info.nomeArquivo, info.tamanhoBytes),
     ]);
 
-    const html = emailNovoEnvio({
-      info,
-      periodo: periodoExtenso(info.dataInicio, info.dataFim),
-      conformidade: resumoConformidade(info.conformidade),
-      linkArquivo: link,
-      appUrl: appUrl(),
-      comAnexo: Boolean(anexo),
-    });
+    const periodo = periodoExtenso(info.dataInicio, info.dataFim);
+    const url = appUrl();
 
+    // 1. Aviso a administracao: e o que faz o pedido nao passar despercebido.
     await enviarEmail({
       para: destinatarios,
-      assunto: `[FAMP TV] ${protocolo} — "${info.titulo}"${
-        info.prioridade === 'urgente' ? ' — URGENTE' : ''
-      }`,
-      html,
+      assunto:
+        `${info.prioridade === 'urgente' ? '[URGENTE] ' : ''}` +
+        `Nova mídia para as TVs da FAMP — ${protocolo}: "${info.titulo}"`,
+      html: emailNovoEnvio({
+        info,
+        periodo,
+        conformidade: resumoConformidade(info.conformidade),
+        linkArquivo: link,
+        appUrl: url,
+        comAnexo: Boolean(anexo),
+      }),
       responderPara: info.enviadoPor?.email,
       anexos: anexo ? [anexo] : undefined,
     });
 
     await ref.update({ notificacaoPendente: false });
+    await registrarLog(ref, 'email_admin_enviado', anexo ? 'com anexo' : 'somente link');
 
-    await ref.collection('logs').add({
-      acao: 'email_enviado',
-      de: null,
-      para: 'pendente',
-      por: 'sistema',
-      em: FieldValue.serverTimestamp(),
-      observacao: anexo ? 'com anexo' : 'somente link',
-    });
+    // 2. Confirmacao a quem enviou. Falhar aqui NAO invalida o envio: o
+    //    informativo ja esta na fila e a administracao ja foi avisada.
+    try {
+      await enviarEmail({
+        para: info.enviadoPor.email,
+        assunto: `Recebemos seu informativo — ${protocolo}`,
+        html: emailEnvioRecebido({ info, periodo, appUrl: url }),
+      });
+      await registrarLog(ref, 'email_confirmacao_enviado');
+    } catch (erro) {
+      console.error('[notificar-envio] confirmação ao remetente falhou:', erro.message);
+      await registrarLog(ref, 'email_confirmacao_falhou', erro.message);
+    }
+
+    // 3. WhatsApp: o e-mail resolve o registro, o WhatsApp resolve a urgencia.
+    const zap = await avisarWhatsapp(textoNovoEnvio({ info, periodo, appUrl: url }));
+    if (zap.enviado) {
+      await registrarLog(ref, 'whatsapp_enviado');
+    } else if (zap.motivo !== 'nao configurado') {
+      console.error('[notificar-envio] WhatsApp falhou:', zap.motivo);
+      await registrarLog(ref, 'whatsapp_falhou', zap.motivo);
+    }
 
     return res.status(200).json({ protocolo });
   } catch (erro) {
@@ -125,6 +143,21 @@ async function verificarLimiteDiario(uid) {
       429,
       `Você atingiu o limite de ${limite} envios por dia. Tente novamente amanhã.`
     );
+  }
+}
+
+async function registrarLog(ref, acao, observacao = null) {
+  try {
+    await ref.collection('logs').add({
+      acao,
+      de: null,
+      para: null,
+      por: 'sistema',
+      em: FieldValue.serverTimestamp(),
+      observacao,
+    });
+  } catch (erro) {
+    console.error('[notificar-envio] log falhou:', erro.message);
   }
 }
 
