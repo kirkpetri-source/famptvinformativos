@@ -1,0 +1,183 @@
+rules_version = '2';
+
+// =============================================================================
+// FAMP TV Informativos — regras do Firestore
+//
+// Duas camadas de acesso, com papeis diferentes:
+//   1. DOMINIO   — define quem pode existir. So @fampfaculdade.com.br mais uma
+//                  excecao nominal.
+//   2. WHITELIST — define quem pode usar. Estar no dominio nao basta.
+//
+// O campo "perfil" existe SOMENTE em usuarios_autorizados, que so o admin
+// escreve. A colecao "usuarios" nao tem perfil: e o que impede um colaborador
+// de se promover a admin.
+//
+// Mantenha dominioPermitido() em sincronia com src/utils/dominio.js.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function emailAuth() {
+      return request.auth.token.email.lower();
+    }
+
+    function dominioPermitido(email) {
+      return email.matches('.*@fampfaculdade[.]com[.]br')
+          || email == 'kirkpetri@gmail.com'
+          // ===== CONTA DE TESTE — REMOVER ANTES DE ENTREGAR A FAMP =====
+          // Espelha EXCECOES_TESTE em src/utils/dominio.js e api/_lib/dominio.js.
+          || email == 'liontech.sup@gmail.com';
+    }
+
+    function logado() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true
+        && dominioPermitido(emailAuth());
+    }
+
+    function autorizado() {
+      return logado()
+        && exists(/databases/$(database)/documents/usuarios_autorizados/$(emailAuth()))
+        && get(/databases/$(database)/documents/usuarios_autorizados/$(emailAuth())).data.ativo == true;
+    }
+
+    function perfil() {
+      return get(/databases/$(database)/documents/usuarios_autorizados/$(emailAuth())).data.perfil;
+    }
+
+    function isAdmin() {
+      return autorizado() && perfil() == 'admin';
+    }
+
+    // -------------------------------------------------------------------------
+    // Whitelist: cada um le apenas o proprio registro; admin le e escreve tudo.
+    // -------------------------------------------------------------------------
+    match /usuarios_autorizados/{docEmail} {
+      allow get:  if logado() && (docEmail == emailAuth() || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isAdmin()
+        && dominioPermitido(docEmail)
+        && request.resource.data.email == docEmail
+        && request.resource.data.perfil in ['colaborador', 'admin']
+        && request.resource.data.ativo is bool;
+
+      allow update: if isAdmin()
+        && dominioPermitido(docEmail)
+        && request.resource.data.email == docEmail
+        && request.resource.data.perfil in ['colaborador', 'admin']
+        // um admin nao pode se rebaixar nem se desativar
+        && (docEmail != emailAuth()
+            || (request.resource.data.perfil == resource.data.perfil
+                && request.resource.data.ativo == true));
+
+      allow delete: if false;   // desativar, nunca apagar
+    }
+
+    // -------------------------------------------------------------------------
+    // Cadastro do usuario: sem campo de perfil, sem troca de e-mail.
+    // -------------------------------------------------------------------------
+    match /usuarios/{uid} {
+      allow read: if logado() && (request.auth.uid == uid || isAdmin());
+
+      allow create: if autorizado()
+        && request.auth.uid == uid
+        && request.resource.data.email == emailAuth()
+        && !('perfil' in request.resource.data)
+        && request.resource.data.nome is string
+        && request.resource.data.cargo is string
+        && request.resource.data.whatsapp is string;
+
+      allow update: if autorizado()
+        && (request.auth.uid == uid || isAdmin())
+        && !('perfil' in request.resource.data)
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Informativos
+    // -------------------------------------------------------------------------
+    match /informativos/{docId} {
+
+      function payloadValido() {
+        let d = request.resource.data;
+        return d.enviadoPor.uid == request.auth.uid
+          && d.enviadoPor.email == emailAuth()
+          && d.titulo is string && d.titulo.size() > 0 && d.titulo.size() <= 80
+          && d.conteudo is string && d.conteudo.size() > 0 && d.conteudo.size() <= 600
+          && d.dataInicio is string && d.dataInicio.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+          && d.dataFim is string && d.dataFim.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+          && d.dataFim >= d.dataInicio
+          && d.prioridade in ['normal', 'urgente'];
+      }
+
+      // Campo ausente em rules gera erro e nega a regra: aceitar ausente OU nulo.
+      function semProtocolo() {
+        return !('protocolo' in request.resource.data)
+            || request.resource.data.protocolo == null;
+      }
+
+      // Nem o admin reescreve o registro de origem. Auditoria nao se edita.
+      function auditoriaPreservada() {
+        return request.resource.data.enviadoPor == resource.data.enviadoPor
+          && request.resource.data.enviadoEm == resource.data.enviadoEm
+          && (!('protocolo' in resource.data)
+              || resource.data.protocolo == null
+              || request.resource.data.protocolo == resource.data.protocolo);
+      }
+
+      allow create: if autorizado()
+        && request.resource.data.status == 'rascunho'
+        && semProtocolo()
+        && payloadValido();
+
+      // O dono so pode ir de rascunho para pendente, sem trocar de dono nem se
+      // autoaprovar. Qualquer outra transicao e do admin.
+      allow update: if (isAdmin() && auditoriaPreservada())
+        || (autorizado()
+            && resource.data.enviadoPor.uid == request.auth.uid
+            && resource.data.status == 'rascunho'
+            && request.resource.data.status == 'pendente'
+            && auditoriaPreservada()
+            && semProtocolo()
+            && payloadValido());
+
+      allow read: if isAdmin()
+        || (autorizado() && resource.data.enviadoPor.uid == request.auth.uid);
+
+      allow delete: if false;   // auditoria e imutavel
+
+      match /logs/{logId} {
+        allow read: if isAdmin()
+          || (autorizado()
+              && get(/databases/$(database)/documents/informativos/$(docId)).data.enviadoPor.uid == request.auth.uid);
+        allow write: if false;  // somente Admin SDK
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Configuracoes
+    // -------------------------------------------------------------------------
+
+    // Padroes de midia: /padroes precisa abrir sem login para ser compartilhada.
+    match /configuracoes/publico {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    match /configuracoes/sistema {
+      allow read:  if autorizado();
+      allow write: if isAdmin();
+    }
+
+    // Log de execucao do cron: so o Admin SDK escreve.
+    match /logs_sistema/{docId} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+  }
+}

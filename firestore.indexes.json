@@ -1,0 +1,80 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "enviadoPor.uid", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "enviadoPor.uid", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "dataInicio", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "dataFim", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "prioridade", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dataInicio", "order": "ASCENDING" },
+        { "fieldPath": "dataFim", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "conformidade.conforme", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "retiradoEm", "order": "ASCENDING" },
+        { "fieldPath": "dataFim", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

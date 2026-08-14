@@ -1,0 +1,1634 @@
+/* ==========================================================================
+   FAMP TV Informativos — design system
+
+   Referencia: painel de operacao de emissora, nao dashboard de SaaS.
+   Regras duras deste arquivo:
+     - Nenhum gradiente.
+     - Sombra apenas no que flutua de verdade (modal, dropdown, modo foco).
+     - Hierarquia por regua de 1px e espaco, nao por card sombreado.
+     - Laranja da marca so em: barra da regua, botao primario e foco.
+     - Contraste minimo 4,5:1 em texto.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reset
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Cor — amostrada do arquivo da logo, nao estimada.
+     O laranja da marca e #F09820 e o marrom do descritor e #300800. */
+  --famp-orange: #f09820; /* 8,0:1 com brown-dark por cima */
+  --famp-orange-light: #ffb24d;
+  --famp-orange-soft: #fdf0dc;
+  /* Escurecido junto com o fundo: sobre o creme novo, #B06808 caia para
+     3,8:1 e reprovava em texto pequeno. Este da 4,9:1. */
+  --famp-orange-dark: #96570a;
+  --famp-brown-dark: #300800; /* 17,0:1 sobre creme */
+  --famp-brown: #5a3a22; /* 9,6:1 sobre creme */
+  --famp-white: #ffffff;
+  /* Creme com presenca real: o fundo precisa se separar dos cards brancos,
+     senao a pagina inteira vira uma superficie so. */
+  --famp-bg-warm: #f5ede1;
+  --famp-bg-card: #ffffff;
+  --famp-gray: #6b5847; /* 5,8:1 sobre o creme — cinza quente, nao azulado */
+  --famp-gray-light: #e6d9c7;
+  --famp-success: #0f7a38;
+  --famp-success-soft: #e3f5ea;
+  --famp-danger: #b91c1c;
+  --famp-danger-soft: #fdecec;
+  --famp-info: #1d4ed8;
+  --famp-info-soft: #e8eefd;
+
+  /* Preto exclusivo da moldura de TV. Nao usar em outro lugar. */
+  --famp-tv: #101010;
+
+  /* Tipografia — Nunito ecoa as formas do logotipo: geometrica, arredondada,
+     terminais macios. A escolha vem da marca do cliente, nao de tendencia. */
+  --fonte-display: 'Nunito', system-ui, sans-serif;
+  --fonte-corpo: 'Inter', system-ui, sans-serif;
+  --fonte-meta: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --tipo-12: 0.75rem;
+  --tipo-14: 0.875rem;
+  --tipo-16: 1rem;
+  --tipo-20: 1.25rem;
+  --tipo-26: 1.625rem;
+  --tipo-34: 2.125rem;
+  --tipo-44: 2.75rem;
+
+  /* Espaco — base 4 */
+  --e-1: 4px;
+  --e-2: 8px;
+  --e-3: 12px;
+  --e-4: 16px;
+  --e-6: 24px;
+  --e-8: 32px;
+  --e-12: 48px;
+  --e-16: 64px;
+
+  /* Forma — o logotipo e redondo, o sistema tambem e.
+     Botao em pilula ecoa os terminais macios do "FAMP". */
+  --raio: 14px;
+  --raio-campo: 10px;
+  --raio-badge: 999px;
+  --regua: 1px solid var(--famp-gray-light);
+
+  /* Sombra — SO para o que flutua */
+  --sombra-flutuante: 0 4px 16px rgba(45, 26, 6, 0.12), 0 1px 3px rgba(45, 26, 6, 0.08);
+
+  /* Movimento */
+  --transicao: 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  --transicao-lenta: 240ms cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  --altura-topbar: 56px;
+  --largura-coluna: 1200px;
+}
+
+/* --------------------------------------------------------------------------
+   3. Base
+   -------------------------------------------------------------------------- */
+
+body {
+  font-family: var(--fonte-corpo);
+  font-size: var(--tipo-16);
+  line-height: 1.5;
+  color: var(--famp-brown);
+  background: var(--famp-bg-warm);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fonte-display);
+  color: var(--famp-brown-dark);
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--tipo-34);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: var(--tipo-26);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: var(--tipo-20);
+  font-weight: 600;
+}
+h4 {
+  font-size: var(--tipo-16);
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--famp-orange-dark);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--famp-orange-soft);
+  color: var(--famp-brown-dark);
+}
+
+/* --------------------------------------------------------------------------
+   4. Estrutura — barra superior e coluna central (sem sidebar)
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  height: var(--altura-topbar);
+  background: var(--famp-white);
+  border-bottom: var(--regua);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar__interno {
+  height: 100%;
+  max-width: var(--largura-coluna);
+  margin: 0 auto;
+  padding: 0 var(--e-6);
+  display: flex;
+  align-items: center;
+  gap: var(--e-8);
+}
+
+.topbar__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  flex-shrink: 0;
+}
+
+.topbar__logo img {
+  height: 30px;
+  width: auto;
+}
+
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--e-6);
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.topbar__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.topbar__link {
+  font-size: var(--tipo-14);
+  font-weight: 600;
+  color: var(--famp-gray);
+  white-space: nowrap;
+  padding: var(--e-1) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transicao);
+}
+
+.topbar__link:hover {
+  color: var(--famp-brown-dark);
+}
+
+.topbar__link[aria-current='page'] {
+  color: var(--famp-brown-dark);
+  border-bottom-color: var(--famp-orange);
+}
+
+.topbar__usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  flex-shrink: 0;
+}
+
+.topbar__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--raio-badge);
+  object-fit: cover;
+  border: var(--regua);
+}
+
+.container {
+  max-width: var(--largura-coluna);
+  margin: 0 auto;
+  padding: var(--e-8) var(--e-6) var(--e-16);
+}
+
+.container--estreito {
+  max-width: 760px;
+}
+
+/* Pagina centrada simples — manutencao, 404, carregando */
+.centro {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--e-6);
+}
+
+.centro__card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--famp-white);
+  border: var(--regua);
+  border-radius: var(--raio);
+  padding: var(--e-8);
+  text-align: center;
+}
+
+.centro__card img {
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   4b. Porta de entrada — login, primeiro acesso, acesso negado
+
+   Tela dividida: a esquerda e o campo marrom da marca, a direita e o creme
+   onde a logo foi feita para viver. Nao e um "auth card" centrado num fundo
+   claro; e a fachada do sistema.
+   -------------------------------------------------------------------------- */
+
+.porta {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+/* Lado do letreiro */
+.porta__letreiro {
+  background: var(--famp-brown-dark);
+  color: var(--famp-bg-warm);
+  padding: var(--e-16) var(--e-12);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--e-12);
+  position: relative;
+  overflow: hidden;
+}
+
+.porta__marca {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--famp-orange);
+}
+
+.porta__frase {
+  font-family: var(--fonte-display);
+  font-weight: 800;
+  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 12ch;
+}
+
+.porta__frase em {
+  font-style: normal;
+  color: var(--famp-orange);
+}
+
+/* O rodizio — elemento assinatura da porta.
+   Cada informativo segura a tela por alguns segundos e passa a vez. A barra
+   abaixo faz exatamente isso: enche, zera, avanca a legenda. E a unica coisa
+   que se move aqui, e e verdade sobre o produto. */
+.rodizio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+}
+
+.rodizio__legenda {
+  font-size: var(--tipo-14);
+  color: rgba(255, 251, 245, 0.62);
+  min-height: 2.6em;
+}
+
+.rodizio__trilhos {
+  display: flex;
+  gap: var(--e-2);
+}
+
+.rodizio__trilho {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(240, 152, 32, 0.22);
+  overflow: hidden;
+}
+
+.rodizio__preenchido {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--famp-orange);
+  border-radius: 999px;
+}
+
+.rodizio__trilho--ativo .rodizio__preenchido {
+  animation: encher 7s linear forwards;
+}
+
+.rodizio__trilho--visto .rodizio__preenchido {
+  width: 100%;
+}
+
+@keyframes encher {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Lado do acesso */
+.porta__acesso {
+  background: var(--famp-bg-warm);
+  padding: var(--e-16) var(--e-12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.porta__conteudo {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.porta__logo {
+  height: 46px;
+  width: auto;
+  margin-bottom: var(--e-8);
+}
+
+.porta__titulo {
+  font-family: var(--fonte-display);
+  font-weight: 800;
+  font-size: var(--tipo-26);
+  letter-spacing: -0.02em;
+  color: var(--famp-brown-dark);
+}
+
+.porta__nota {
+  font-size: var(--tipo-14);
+  color: var(--famp-gray);
+  line-height: 1.55;
+}
+
+.porta__rodape {
+  margin-top: var(--e-12);
+  padding-top: var(--e-4);
+  border-top: var(--regua);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-4);
+}
+
+@media (max-width: 860px) {
+  .porta {
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+  }
+
+  .porta__letreiro {
+    padding: var(--e-8) var(--e-6);
+    gap: var(--e-8);
+  }
+
+  .porta__acesso {
+    padding: var(--e-8) var(--e-6) var(--e-12);
+    justify-content: flex-start;
+  }
+
+  .porta__frase {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rodizio__trilho--ativo .rodizio__preenchido {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Tipografia utilitaria
+   -------------------------------------------------------------------------- */
+
+/* Metadado tecnico: protocolo, data, dimensao, duracao, status.
+   Dado tecnico com cara de dado tecnico. */
+.meta {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--famp-gray);
+}
+
+.meta--forte {
+  color: var(--famp-brown-dark);
+}
+
+.meta--nao-caixa {
+  text-transform: none;
+}
+
+/* Rotulo de campo */
+.rotulo {
+  display: block;
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--famp-gray);
+  margin-bottom: var(--e-2);
+}
+
+.secundario {
+  color: var(--famp-gray);
+  font-size: var(--tipo-14);
+}
+
+.destaque-numero {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-16);
+  font-weight: 500;
+  color: var(--famp-brown-dark);
+}
+
+/* Condensado — rotulos de dia na regua, onde a coluna e estreita */
+.condensado {
+  font-family: var(--fonte-display);
+  font-variation-settings: 'wdth' 75;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   6. Superficies — regua e espaco, sem sombra
+   -------------------------------------------------------------------------- */
+
+.bloco {
+  background: var(--famp-bg-card);
+  border: var(--regua);
+  border-radius: var(--raio);
+  padding: var(--e-6);
+}
+
+.bloco--plano {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.divisor {
+  border: none;
+  border-top: var(--regua);
+  margin: var(--e-6) 0;
+}
+
+.cabecalho-secao {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-4);
+  padding-bottom: var(--e-3);
+  border-bottom: var(--regua);
+  margin-bottom: var(--e-6);
+}
+
+.lista-regua > * + * {
+  border-top: var(--regua);
+}
+
+/* --------------------------------------------------------------------------
+   7. Botoes
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-2);
+  min-height: 42px;
+  padding: 0 var(--e-6);
+  border-radius: var(--raio-badge);
+  font-family: var(--fonte-corpo);
+  font-size: var(--tipo-14);
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: background-color var(--transicao), border-color var(--transicao),
+    color var(--transicao);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn svg {
+  flex-shrink: 0;
+}
+
+/* Laranja com texto marrom escuro: 6,9:1. Texto branco sobre laranja da 2,4:1
+   e reprova WCAG — por isso nao existe essa combinacao aqui. */
+.btn--primario {
+  background: var(--famp-orange);
+  color: var(--famp-brown-dark);
+}
+
+.btn--primario:hover:not(:disabled) {
+  background: var(--famp-orange-light);
+}
+
+.btn--secundario {
+  background: transparent;
+  border-color: var(--famp-gray-light);
+  color: var(--famp-brown);
+}
+
+.btn--secundario:hover:not(:disabled) {
+  border-color: var(--famp-brown);
+  background: var(--famp-white);
+}
+
+.btn--perigo {
+  background: var(--famp-danger-soft);
+  color: var(--famp-danger);
+}
+
+.btn--perigo:hover:not(:disabled) {
+  background: #fbdcdc;
+}
+
+.btn--texto {
+  background: transparent;
+  color: var(--famp-info);
+  padding: 0;
+  min-height: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 400;
+}
+
+.btn--grande {
+  min-height: 48px;
+  padding: 0 var(--e-6);
+  font-size: var(--tipo-16);
+}
+
+.btn--bloco {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   8. Campos
+   -------------------------------------------------------------------------- */
+
+.campo {
+  margin-bottom: var(--e-6);
+}
+
+.campo__entrada,
+input[type='text'],
+input[type='email'],
+input[type='date'],
+input[type='number'],
+input[type='tel'],
+textarea,
+select {
+  width: 100%;
+  min-height: 40px;
+  padding: var(--e-2) var(--e-3);
+  background: var(--famp-white);
+  border: 1px solid var(--famp-gray-light);
+  border-radius: var(--raio-campo);
+  font-family: var(--fonte-corpo);
+  font-size: var(--tipo-16);
+  color: var(--famp-brown-dark);
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.campo__entrada:hover,
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--famp-gray);
+}
+
+.campo__entrada:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--famp-orange);
+  box-shadow: 0 0 0 3px var(--famp-orange-soft);
+  outline: none;
+}
+
+.campo__entrada[aria-invalid='true'],
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--famp-danger);
+}
+
+.campo__ajuda {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-3);
+  margin-top: var(--e-2);
+  font-size: var(--tipo-12);
+  color: var(--famp-gray);
+}
+
+.campo__erro {
+  margin-top: var(--e-2);
+  font-size: var(--tipo-14);
+  color: var(--famp-danger);
+}
+
+.campo__contador {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  color: var(--famp-gray);
+  flex-shrink: 0;
+}
+
+.campo__contador--limite {
+  color: var(--famp-danger);
+}
+
+/* Checkbox de declaracao */
+.declaracao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-3);
+  padding: var(--e-3);
+  border: var(--regua);
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: border-color var(--transicao), background-color var(--transicao);
+}
+
+.declaracao:hover {
+  border-color: var(--famp-gray);
+}
+
+.declaracao input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--famp-orange-dark);
+  cursor: pointer;
+}
+
+.declaracao--marcada {
+  border-color: var(--famp-success);
+  background: var(--famp-success-soft);
+}
+
+.declaracao span {
+  font-size: var(--tipo-14);
+  line-height: 1.45;
+}
+
+.grade-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-4);
+}
+
+@media (max-width: 640px) {
+  .grade-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Badges — status e conformidade. Nada mais recebe badge.
+   -------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  padding: 2px var(--e-2);
+  border-radius: var(--raio-badge);
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge--neutro {
+  background: var(--famp-gray-light);
+  color: var(--famp-brown-dark);
+}
+.badge--pendente {
+  background: var(--famp-orange-soft);
+  color: var(--famp-orange-dark);
+}
+.badge--aprovado {
+  background: var(--famp-info-soft);
+  color: var(--famp-info);
+}
+.badge--programado {
+  background: var(--famp-info-soft);
+  color: var(--famp-info);
+}
+.badge--no-ar {
+  background: var(--famp-success-soft);
+  color: var(--famp-success);
+}
+.badge--expirado {
+  background: var(--famp-gray-light);
+  color: var(--famp-gray);
+}
+.badge--rejeitado,
+.badge--cancelado {
+  background: var(--famp-danger-soft);
+  color: var(--famp-danger);
+}
+
+/* Tally light — o unico elemento vivo da interface.
+   Nao replicar esta ideia em nenhum outro lugar. */
+.tally {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--raio-badge);
+  background: var(--famp-success);
+  flex-shrink: 0;
+  animation: tally 2s ease-in-out infinite;
+}
+
+@keyframes tally {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. Regua de tempo — o idioma unico do sistema.
+       Todo periodo de veiculacao aparece assim, em qualquer tela.
+   -------------------------------------------------------------------------- */
+
+.regua-tempo {
+  --dias: 21;
+  position: relative;
+  width: 100%;
+}
+
+.regua-tempo__dias {
+  display: grid;
+  grid-template-columns: repeat(var(--dias), minmax(0, 1fr));
+  border-bottom: var(--regua);
+  padding-bottom: var(--e-1);
+  margin-bottom: var(--e-2);
+}
+
+.regua-tempo__dia {
+  text-align: center;
+  font-family: var(--fonte-display);
+  font-variation-settings: 'wdth' 75;
+  font-size: var(--tipo-12);
+  color: var(--famp-gray);
+  line-height: 1.2;
+}
+
+.regua-tempo__dia--fds {
+  color: var(--famp-gray-light);
+}
+
+.regua-tempo__dia strong {
+  display: block;
+  font-weight: 600;
+  color: var(--famp-brown);
+}
+
+.regua-tempo__faixas {
+  display: grid;
+  grid-template-columns: repeat(var(--dias), minmax(0, 1fr));
+  grid-auto-rows: 28px;
+  gap: var(--e-1);
+  position: relative;
+}
+
+.regua-tempo__hoje {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--famp-brown-dark);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.barra {
+  grid-row: var(--faixa);
+  grid-column: var(--inicio) / var(--fim);
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-width: 0;
+  height: 24px;
+  padding: 0 var(--e-2);
+  border-radius: 4px;
+  font-size: var(--tipo-12);
+  font-weight: 600;
+  cursor: pointer;
+  transition: grid-column var(--transicao-lenta), transform var(--transicao);
+  text-align: left;
+}
+
+.barra > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra:hover {
+  transform: translateY(-1px);
+}
+
+/* No ar: preenchida */
+.barra--no-ar {
+  background: var(--famp-orange);
+  color: var(--famp-brown-dark);
+}
+
+/* Programado: hachurada */
+.barra--programado {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--famp-orange-soft),
+    var(--famp-orange-soft) 4px,
+    var(--famp-white) 4px,
+    var(--famp-white) 8px
+  );
+  color: var(--famp-brown-dark);
+  border: 1px solid var(--famp-orange-light);
+}
+
+/* Aprovado mas nao programado: contorno tracejado — exige acao */
+.barra--aprovado {
+  background: transparent;
+  border: 1px dashed var(--famp-orange-dark);
+  color: var(--famp-orange-dark);
+}
+
+.barra--expirado {
+  background: var(--famp-gray-light);
+  color: var(--famp-gray);
+}
+
+/* Versao compacta: uma unica barra de periodo, usada em listas e detalhe */
+.periodo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+.periodo__trilho {
+  position: relative;
+  flex: 1;
+  min-width: 60px;
+  height: 4px;
+  background: var(--famp-gray-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.periodo__preenchido {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--famp-orange);
+}
+
+/* --------------------------------------------------------------------------
+   11. Moldura de TV — o unico lugar do sistema onde existe preto
+   -------------------------------------------------------------------------- */
+
+.tv {
+  width: 100%;
+}
+
+.tv__tela {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background: var(--famp-tv);
+  border-radius: 6px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.tv__tela img,
+.tv__tela video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Area segura (title safe, 90%) — conceito real de broadcast */
+.tv__area-segura {
+  position: absolute;
+  inset: 5%;
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.tv__area-segura::after {
+  content: 'mantenha o texto dentro desta area';
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+  font-family: var(--fonte-meta);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tv__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-4);
+  padding-top: var(--e-3);
+  margin-top: var(--e-2);
+  border-top: 2px solid var(--famp-gray-light);
+}
+
+.tv__estado--conforme {
+  border-top-color: var(--famp-success);
+}
+
+.tv__estado--problema {
+  border-top-color: var(--famp-danger);
+}
+
+.tv__veredito {
+  font-size: var(--tipo-14);
+  font-weight: 600;
+  width: 100%;
+}
+
+.tv__veredito--conforme {
+  color: var(--famp-success);
+}
+
+.tv__veredito--problema {
+  color: var(--famp-danger);
+}
+
+.tv__controles {
+  display: flex;
+  gap: var(--e-2);
+  margin-top: var(--e-3);
+}
+
+.tv__vazio {
+  color: var(--famp-gray);
+  font-size: var(--tipo-14);
+  text-align: center;
+  padding: var(--e-6);
+}
+
+/* Cartao de PDF dentro da moldura */
+.tv__pdf {
+  display: grid;
+  place-items: center;
+  gap: var(--e-3);
+  color: var(--famp-white);
+  padding: var(--e-6);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   12. Area de upload
+   -------------------------------------------------------------------------- */
+
+.upload {
+  border: 2px dashed var(--famp-gray-light);
+  border-radius: var(--raio);
+  padding: var(--e-8) var(--e-6);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transicao), background-color var(--transicao);
+}
+
+.upload:hover {
+  border-color: var(--famp-orange-dark);
+}
+
+.upload--ativo {
+  border-color: var(--famp-orange);
+  background: var(--famp-orange-soft);
+}
+
+.upload--erro {
+  border-color: var(--famp-danger);
+}
+
+.upload__icone {
+  color: var(--famp-orange-dark);
+  margin: 0 auto var(--e-3);
+}
+
+/* Ficha de especificacao — pares rotulo/valor separados por regua */
+.ficha {
+  background: var(--famp-white);
+  border: var(--regua);
+  border-radius: var(--raio);
+  padding: 0 var(--e-6);
+}
+
+.ficha__linha {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-4);
+  padding: var(--e-4) 0;
+}
+
+.ficha__linha + .ficha__linha {
+  border-top: var(--regua);
+}
+
+.ficha__linha .meta {
+  min-width: 132px;
+  flex-shrink: 0;
+}
+
+.ficha__valor {
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: var(--tipo-16);
+  color: var(--famp-brown-dark);
+}
+
+@media (max-width: 520px) {
+  .ficha__linha {
+    flex-direction: column;
+    gap: var(--e-1);
+  }
+}
+
+/* Especificacoes do arquivo — tres dados, nada mais. */
+.especificacoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+  margin-bottom: var(--e-3);
+}
+
+.especificacoes__chip {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--e-2) var(--e-4);
+  background: var(--famp-orange-soft);
+  border-radius: var(--raio-campo);
+}
+
+.especificacoes__rotulo {
+  font-family: var(--fonte-meta);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--famp-orange-dark);
+}
+
+.especificacoes__valor {
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: var(--tipo-14);
+  color: var(--famp-brown-dark);
+  white-space: nowrap;
+}
+
+.progresso {
+  height: 4px;
+  background: var(--famp-gray-light);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--e-3);
+}
+
+.progresso__barra {
+  height: 100%;
+  background: var(--famp-orange);
+  transition: width var(--transicao);
+}
+
+/* --------------------------------------------------------------------------
+   13. Listas e tabelas
+   -------------------------------------------------------------------------- */
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-4);
+  padding: var(--e-4) 0;
+  width: 100%;
+  text-align: left;
+}
+
+.item__miniatura {
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  background: var(--famp-tv);
+  border-radius: 4px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.item__miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.item__corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.item__titulo {
+  font-family: var(--fonte-display);
+  font-size: var(--tipo-16);
+  font-weight: 600;
+  color: var(--famp-brown-dark);
+  margin: var(--e-1) 0;
+}
+
+.item__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  flex-shrink: 0;
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border: var(--regua);
+  border-radius: var(--raio);
+  background: var(--famp-white);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tipo-14);
+}
+
+th {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--famp-gray);
+  text-align: left;
+  padding: var(--e-3);
+  border-bottom: var(--regua);
+  white-space: nowrap;
+}
+
+td {
+  padding: var(--e-3);
+  border-bottom: var(--regua);
+  vertical-align: top;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:nth-child(even) {
+  background: var(--famp-bg-warm);
+}
+
+/* --------------------------------------------------------------------------
+   14. Agenda do dia — linha de numeros em mono, sem KPI cards
+   -------------------------------------------------------------------------- */
+
+.agenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-4);
+  padding: var(--e-3) 0;
+  border-top: var(--regua);
+  border-bottom: var(--regua);
+  margin-bottom: var(--e-8);
+}
+
+.agenda__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-12);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--famp-gray);
+  transition: color var(--transicao);
+}
+
+.agenda__item:hover {
+  color: var(--famp-brown-dark);
+}
+
+.agenda__item strong {
+  font-size: var(--tipo-16);
+  color: var(--famp-brown-dark);
+}
+
+.agenda__item--alerta strong,
+.agenda__item--alerta {
+  color: var(--famp-danger);
+}
+
+.agenda__separador {
+  color: var(--famp-gray-light);
+}
+
+/* --------------------------------------------------------------------------
+   15. Avisos, estado vazio, toast, modal
+   -------------------------------------------------------------------------- */
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  border-left: 3px solid;
+  font-size: var(--tipo-14);
+  margin-bottom: var(--e-4);
+}
+
+.aviso--info {
+  background: var(--famp-info-soft);
+  border-left-color: var(--famp-info);
+  color: var(--famp-info);
+}
+.aviso--alerta {
+  background: var(--famp-orange-soft);
+  border-left-color: var(--famp-orange-dark);
+  color: var(--famp-orange-dark);
+}
+.aviso--erro {
+  background: var(--famp-danger-soft);
+  border-left-color: var(--famp-danger);
+  color: var(--famp-danger);
+}
+.aviso--sucesso {
+  background: var(--famp-success-soft);
+  border-left-color: var(--famp-success);
+  color: var(--famp-success);
+}
+
+/* Estado vazio: uma frase e a acao seguinte. Sem ilustracao. */
+.vazio {
+  padding: var(--e-12) var(--e-6);
+  text-align: center;
+  color: var(--famp-gray);
+}
+
+.vazio p {
+  margin-bottom: var(--e-4);
+}
+
+.toasts {
+  position: fixed;
+  right: var(--e-4);
+  bottom: var(--e-4);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  max-width: min(400px, calc(100vw - 32px));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  background: var(--famp-white);
+  border: var(--regua);
+  border-left: 3px solid var(--famp-gray);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-flutuante);
+  font-size: var(--tipo-14);
+}
+
+.toast--sucesso {
+  border-left-color: var(--famp-success);
+}
+.toast--erro {
+  border-left-color: var(--famp-danger);
+}
+
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 26, 6, 0.45);
+  display: grid;
+  place-items: center;
+  padding: var(--e-4);
+  z-index: 150;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--famp-white);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-flutuante);
+  padding: var(--e-6);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--e-2);
+  margin-top: var(--e-6);
+}
+
+/* --------------------------------------------------------------------------
+   16. Skeleton
+   -------------------------------------------------------------------------- */
+
+.skeleton {
+  background: var(--famp-gray-light);
+  border-radius: 4px;
+  animation: pulsar 1.4s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   17. Utilitarios
+   -------------------------------------------------------------------------- */
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+}
+.linha--topo {
+  align-items: flex-start;
+}
+.linha--entre {
+  justify-content: space-between;
+}
+.linha--quebra {
+  flex-wrap: wrap;
+}
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+}
+.crescer {
+  flex: 1;
+  min-width: 0;
+}
+.mt-2 {
+  margin-top: var(--e-2);
+}
+.mt-4 {
+  margin-top: var(--e-4);
+}
+.mt-6 {
+  margin-top: var(--e-6);
+}
+.mt-8 {
+  margin-top: var(--e-8);
+}
+.mb-2 {
+  margin-bottom: var(--e-2);
+}
+.mb-4 {
+  margin-bottom: var(--e-4);
+}
+.mb-6 {
+  margin-bottom: var(--e-6);
+}
+.mb-8 {
+  margin-bottom: var(--e-8);
+}
+
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.prosa {
+  max-width: 68ch;
+}
+
+.prosa h2 {
+  margin: var(--e-8) 0 var(--e-3);
+}
+
+.prosa h3 {
+  margin: var(--e-6) 0 var(--e-2);
+}
+
+.prosa p,
+.prosa li {
+  margin-bottom: var(--e-3);
+}
+
+.prosa ul {
+  list-style: disc;
+  padding-left: var(--e-6);
+  margin-bottom: var(--e-4);
+}
+
+.prosa pre {
+  font-family: var(--fonte-meta);
+  font-size: var(--tipo-14);
+  background: var(--famp-white);
+  border: var(--regua);
+  border-radius: var(--raio);
+  padding: var(--e-4);
+  overflow-x: auto;
+  line-height: 1.6;
+  margin-bottom: var(--e-4);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* --------------------------------------------------------------------------
+   18. Movimento reduzido
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tally {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   19. Telas estreitas
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .container {
+    padding: var(--e-6) var(--e-4) var(--e-12);
+  }
+
+  .topbar__interno {
+    padding: 0 var(--e-4);
+    gap: var(--e-4);
+  }
+
+  .topbar__nav {
+    gap: var(--e-4);
+  }
+
+  h1 {
+    font-size: var(--tipo-26);
+  }
+
+  h2 {
+    font-size: var(--tipo-20);
+  }
+
+  .item {
+    flex-wrap: wrap;
+  }
+
+  .item__acoes {
+    width: 100%;
+  }
+
+  /* A grade vira rolagem horizontal com hoje ancorado a esquerda */
+  .regua-tempo {
+    min-width: 720px;
+  }
+
+  .regua-tempo-rolagem {
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--e-4));
+    padding: 0 var(--e-4);
+  }
+}

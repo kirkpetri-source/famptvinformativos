@@ -1,0 +1,31 @@
+node_modules
+dist
+dist-ssr
+.vercel
+.firebase
+
+# Variaveis de ambiente — NUNCA versionar
+.env
+.env.local
+.env.*.local
+
+# Credenciais de service account
+*-service-account.json
+serviceAccountKey.json
+
+# Emuladores
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+storage-debug.log
+.firebaserc.local
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+*.local
+npm-debug.log*

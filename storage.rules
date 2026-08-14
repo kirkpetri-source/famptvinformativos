@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// =============================================================================
+// FAMP TV Informativos — regras do Storage
+//
+// Leitura restrita ao dono e ao admin, espelhando a regra do Firestore.
+// Liberar para todo o dominio deixaria qualquer colaborador ler a midia dos
+// outros sabendo o caminho.
+//
+// O documento em /informativos e criado ANTES do upload — por isso a regra
+// pode consultar o Firestore para saber de quem e a pasta.
+// =============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function dominioPermitido() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && (request.auth.token.email.lower().matches('.*@fampfaculdade[.]com[.]br')
+            || request.auth.token.email.lower() == 'kirkpetri@gmail.com'
+            // ===== CONTA DE TESTE — REMOVER ANTES DE ENTREGAR A FAMP =====
+            || request.auth.token.email.lower() == 'liontech.sup@gmail.com');
+    }
+
+    function donoDoDocumento(docId) {
+      return firestore.get(/databases/(default)/documents/informativos/$(docId))
+               .data.enviadoPor.uid == request.auth.uid;
+    }
+
+    function isAdminStorage() {
+      return firestore.get(/databases/(default)/documents/usuarios_autorizados/$(request.auth.token.email.lower()))
+               .data.perfil == 'admin';
+    }
+
+    match /informativos/{ano}/{mes}/{docId}/{arquivo} {
+
+      allow read: if dominioPermitido()
+        && (donoDoDocumento(docId) || isAdminStorage());
+
+      // Teto absoluto de 80 MB: a regra nao le configuracao, entao os limites
+      // por tipo (imagem 15, video 70, PDF 20) sao aplicados na aplicacao,
+      // antes do upload.
+      allow create: if dominioPermitido()
+        && request.resource.size <= 80 * 1024 * 1024
+        && request.resource.contentType.matches('(image/(jpeg|png)|video/mp4|application/pdf)')
+        && donoDoDocumento(docId);
+
+      // Sem sobrescrita e sem exclusao pelo cliente.
+      // O expurgo e feito pelo Admin SDK no cron, que ignora estas regras.
+      allow update, delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

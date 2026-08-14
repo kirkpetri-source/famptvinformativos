@@ -1,0 +1,34 @@
+{
+  "name": "famp-tv-informativos",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sistema interno da Faculdade Morgana Potrich para envio e gerenciamento dos informativos exibidos nas TVs dos campi",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "seed": "node scripts/seed-admin.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.7.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "lucide-react": "^0.462.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.5",
+    "react-router-dom": "^6.28.0",
+    "resend": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "dotenv": "^16.4.7",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

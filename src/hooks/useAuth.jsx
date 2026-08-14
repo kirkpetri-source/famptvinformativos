@@ -1,0 +1,87 @@
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  observarSessao,
+  resolverAcesso,
+  buscarCadastro,
+  registrarUltimoLogin,
+  sair as sairDaConta,
+} from '../services/auth.js';
+
+const ContextoAuth = createContext(null);
+
+/**
+ * Sessao do usuario.
+ *
+ * O perfil NUNCA vem da colecao `usuarios` — vem de `usuarios_autorizados`,
+ * que so o admin escreve. E o que impede um colaborador de se promover.
+ */
+export function ProvedorAuth({ children }) {
+  const [carregando, setCarregando] = useState(true);
+  const [user, setUser] = useState(null);
+  const [acesso, setAcesso] = useState(null); // { recusa, email, perfil }
+  const [cadastro, setCadastro] = useState(null);
+  const [falhaInfra, setFalhaInfra] = useState(false);
+
+  const recarregarCadastro = useCallback(async () => {
+    if (!user) return;
+    setCadastro(await buscarCadastro(user.uid));
+  }, [user]);
+
+  useEffect(() => {
+    return observarSessao(async (usuarioFirebase) => {
+      setUser(usuarioFirebase);
+
+      if (!usuarioFirebase) {
+        setAcesso(null);
+        setCadastro(null);
+        setCarregando(false);
+        return;
+      }
+
+      try {
+        const resultado = await resolverAcesso(usuarioFirebase);
+        setAcesso(resultado);
+
+        if (!resultado.recusa) {
+          const doc = await buscarCadastro(usuarioFirebase.uid);
+          setCadastro(doc);
+          if (doc) registrarUltimoLogin(usuarioFirebase.uid);
+        }
+      } catch (erro) {
+        console.error('Falha ao resolver o acesso:', erro);
+        setFalhaInfra(true);
+      } finally {
+        setCarregando(false);
+      }
+    });
+  }, []);
+
+  const sair = useCallback(async () => {
+    await sairDaConta();
+    setAcesso(null);
+    setCadastro(null);
+  }, []);
+
+  const valor = {
+    carregando,
+    user,
+    acesso,
+    cadastro,
+    falhaInfra,
+    autorizado: Boolean(acesso && !acesso.recusa),
+    isAdmin: acesso?.perfil === 'admin',
+    precisaCadastro: Boolean(acesso && !acesso.recusa && !cadastro),
+    recarregarCadastro,
+    sair,
+  };
+
+  return <ContextoAuth.Provider value={valor}>{children}</ContextoAuth.Provider>;
+}
+
+export function useAuth() {
+  const contexto = useContext(ContextoAuth);
+  if (!contexto) {
+    throw new Error('useAuth precisa estar dentro de ProvedorAuth.');
+  }
+  return contexto;
+}
