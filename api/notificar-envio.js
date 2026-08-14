@@ -9,7 +9,6 @@ import {
   linkAssinado,
   anexoSeCouber,
 } from './_lib/email.js';
-import { avisarWhatsapp, textoNovoEnvio } from './_lib/whatsapp.js';
 
 /**
  * Chamada pelo cliente logo apos o envio.
@@ -101,15 +100,6 @@ export default async function handler(req, res) {
     } catch (erro) {
       console.error('[notificar-envio] confirmação ao remetente falhou:', erro.message);
       await registrarLog(ref, 'email_confirmacao_falhou', erro.message);
-    }
-
-    // 3. WhatsApp: o e-mail resolve o registro, o WhatsApp resolve a urgencia.
-    const zap = await avisarWhatsapp(textoNovoEnvio({ info, periodo, appUrl: url }));
-    if (zap.enviado) {
-      await registrarLog(ref, 'whatsapp_enviado');
-    } else if (zap.motivo !== 'nao configurado') {
-      console.error('[notificar-envio] WhatsApp falhou:', zap.motivo);
-      await registrarLog(ref, 'whatsapp_falhou', zap.motivo);
     }
 
     return res.status(200).json({ protocolo });
