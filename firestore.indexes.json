@@ -67,6 +67,33 @@
       ]
     },
     {
+      "_comment": "cron: limpeza de rascunhos com mais de 24h (status == + enviadoEm <)",
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "_comment": "cron: protocolo pendente (status == 'pendente' + protocolo == null)",
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "protocolo", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "_comment": "api: limite de envios por dia (enviadoPor.uid == + enviadoEm >=)",
+      "collectionGroup": "informativos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "enviadoPor.uid", "order": "ASCENDING" },
+        { "fieldPath": "enviadoEm", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "informativos",
       "queryScope": "COLLECTION",
       "fields": [
