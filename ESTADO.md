@@ -51,6 +51,17 @@ estão só na Vercel, como *Sensitive*.
 - Administração decide: colaborador recebe aprovação, recusa ou cancelamento
 - Resumo diário no cron, que não envia quando não há nada a fazer
 
+**Login no celular** (verificado em produção em 16/08/2026)
+- `authDomain` aponta para `famptvinformativos.vercel.app`; proxy de `/__/auth`
+  no `vercel.json` responde 200 no handler, no iframe e no experiments
+- URI `https://famptvinformativos.vercel.app/__/auth/handler` registrada no
+  cliente OAuth `427319291181-f4q2qu05abr6a7ei1m6t9hict56667a5`
+- Com user-agent de iPhone, o botão de entrar faz redirect na mesma aba, sem
+  abrir aba nova, e o Google aceita a URI
+- A URL de autorização sai sem `hd=` e com `prompt=select_account`
+- Cinco rotas públicas mais uma protegida: nenhum erro nem aviso no console;
+  `/programacao` sem sessão cai em `/entrar`
+
 **Segurança verificada com token de usuário real**
 - Upload do dono na própria pasta: 200
 - Upload de colaborador na pasta de outro: 403
@@ -62,16 +73,16 @@ estão só na Vercel, como *Sensitive*.
 ## Pendente
 
 **Do Kirk**
-- **Ativar o login por redirect na mesma origem** (o que faz o celular funcionar
-  em Safari e Firefox). Dois passos, nesta ordem:
-  1. Google Cloud Console → APIs e serviços → Credenciais → cliente OAuth 2.0 do
-     projeto → URIs de redirecionamento autorizados → acrescentar
-     `https://famptvinformativos.vercel.app/__/auth/handler`. Não remover o
-     `https://famp-tv-informativos.firebaseapp.com/__/auth/handler`.
-  2. Na Vercel, trocar `VITE_FIREBASE_AUTH_DOMAIN` para
-     `famptvinformativos.vercel.app` e redeployar.
-  O proxy de `/__/auth` já está no `vercel.json`. Sem o passo 1 o login para com
-  `redirect_uri_mismatch`.
+- Entrar pelo celular e confirmar que o login conclui. É o único passo do fluxo
+  novo que não dá para verificar por automação: o Google detecta
+  `navigator.webdriver` e não renderiza a tela de login.
+- Conferir o **nome público do projeto** na tela de consentimento do Google
+  (Firebase → Authentication → Método de login → Google → configuração no nível
+  do projeto). Estava `project-427319291181`, que é o que o colaborador lê em
+  "Fazer login em ...". Deve ser `FAMP TV Informativos`.
+- A entrada de **Pré-visualização** de `VITE_FIREBASE_AUTH_DOMAIN` na Vercel
+  precisa continuar em `famp-tv-informativos.firebaseapp.com`. Deploy de preview
+  recebe hostname próprio, que não está registrado no cliente OAuth.
 - Passar pelos seis passos do fluxo real em produção e reportar o que quebrar
 - Tirar do spam o remetente `informativos@envios.liontechti.com.br` e criar filtro
   no Gmail com "Nunca enviar para Spam" e "Sempre marcar como importante" — é o
