@@ -7,7 +7,8 @@ import Porta from '../components/Porta.jsx';
 import { DOMINIO_INSTITUCIONAL } from '../utils/dominio.js';
 
 export default function Login() {
-  const { carregando, user, acesso, precisaCadastro, isAdmin, erroLogin } = useAuth();
+  const { carregando, user, acesso, precisaCadastro, isAdmin, erroLogin, limparErroLogin } =
+    useAuth();
   const [entrando, setEntrando] = useState(false);
   const [erroLocal, setErroLocal] = useState(null);
 
@@ -24,6 +25,8 @@ export default function Login() {
 
   async function entrar() {
     setErroLocal(null);
+    // O erro do redirect anterior nao pode sobreviver a uma nova tentativa.
+    limparErroLogin();
     setEntrando(true);
     try {
       // No celular isto sai da pagina: nao ha estado para desligar depois.
