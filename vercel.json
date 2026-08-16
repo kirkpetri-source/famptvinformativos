@@ -8,7 +8,15 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/__/auth/:caminho*",
+      "destination": "https://famp-tv-informativos.firebaseapp.com/__/auth/:caminho*"
+    },
+    {
+      "source": "/__/firebase/:caminho*",
+      "destination": "https://famp-tv-informativos.firebaseapp.com/__/firebase/:caminho*"
+    },
+    {
+      "source": "/((?!api/|__/).*)",
       "destination": "/index.html"
     }
   ]

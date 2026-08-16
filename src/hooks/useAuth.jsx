@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
   observarSessao,
+  resultadoDoRedirect,
   resolverAcesso,
   buscarCadastro,
   registrarUltimoLogin,
@@ -21,11 +22,21 @@ export function ProvedorAuth({ children }) {
   const [acesso, setAcesso] = useState(null); // { recusa, email, perfil }
   const [cadastro, setCadastro] = useState(null);
   const [falhaInfra, setFalhaInfra] = useState(false);
+  const [erroLogin, setErroLogin] = useState(null);
 
   const recarregarCadastro = useCallback(async () => {
     if (!user) return;
     setCadastro(await buscarCadastro(user.uid));
   }, [user]);
+
+  // Conclui o login por redirect (celular). Sem isto, um redirect que falhou do
+  // lado do Google devolve o usuario para a tela de entrar sem dizer por que.
+  useEffect(() => {
+    resultadoDoRedirect().catch((erro) => {
+      console.error('Falha ao concluir o login por redirect:', erro?.code, erro);
+      setErroLogin(erro);
+    });
+  }, []);
 
   useEffect(() => {
     return observarSessao(async (usuarioFirebase) => {
@@ -78,6 +89,8 @@ export function ProvedorAuth({ children }) {
     acesso,
     cadastro,
     falhaInfra,
+    erroLogin,
+    limparErroLogin: () => setErroLogin(null),
     autorizado: Boolean(acesso && !acesso.recusa),
     isAdmin: acesso?.perfil === 'admin',
     precisaCadastro: Boolean(acesso && !acesso.recusa && !cadastro),

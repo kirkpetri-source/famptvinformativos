@@ -1,6 +1,6 @@
 # Estado do projeto
 
-Última atualização: **14/08/2026**
+Última atualização: **16/08/2026**
 
 Status: **no ar em produção, em fase de teste dos fluxos**
 
@@ -62,6 +62,16 @@ estão só na Vercel, como *Sensitive*.
 ## Pendente
 
 **Do Kirk**
+- **Ativar o login por redirect na mesma origem** (o que faz o celular funcionar
+  em Safari e Firefox). Dois passos, nesta ordem:
+  1. Google Cloud Console → APIs e serviços → Credenciais → cliente OAuth 2.0 do
+     projeto → URIs de redirecionamento autorizados → acrescentar
+     `https://famptvinformativos.vercel.app/__/auth/handler`. Não remover o
+     `https://famp-tv-informativos.firebaseapp.com/__/auth/handler`.
+  2. Na Vercel, trocar `VITE_FIREBASE_AUTH_DOMAIN` para
+     `famptvinformativos.vercel.app` e redeployar.
+  O proxy de `/__/auth` já está no `vercel.json`. Sem o passo 1 o login para com
+  `redirect_uri_mismatch`.
 - Passar pelos seis passos do fluxo real em produção e reportar o que quebrar
 - Tirar do spam o remetente `informativos@envios.liontechti.com.br` e criar filtro
   no Gmail com "Nunca enviar para Spam" e "Sempre marcar como importante" — é o
@@ -89,6 +99,11 @@ estão só na Vercel, como *Sensitive*.
 
 ## Decisões tomadas
 
+- **16/08/2026** — Login no celular passa a usar `signInWithRedirect`; popup fica
+  só no desktop. Popup depende de `postMessage` entre abas, que o
+  Cross-Origin-Opener-Policy da página do Google corta — no celular a aba ficava
+  branca. Removido também o parâmetro `hd`, que o Google trata como filtro e que
+  travava as contas de exceção.
 - **14/08/2026** — Remetente dos e-mails fica em `envios.liontechti.com.br`.
   Autorizado pelo Kirk: a associação com a Lion Tech confirma a parceria com a
   FAMP no mesmo serviço.

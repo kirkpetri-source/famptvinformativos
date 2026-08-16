@@ -9,7 +9,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
-import { DOMINIO_INSTITUCIONAL } from '../utils/dominio.js';
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,11 +25,20 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  // Dica de selecao de conta, nao trava. A trava esta nas security rules.
-  hd: DOMINIO_INSTITUCIONAL.replace('@', ''),
-  prompt: 'select_account',
-});
+
+/**
+ * NAO usar o parametro `hd` aqui.
+ *
+ * A documentacao antiga o descreve como dica de selecao de conta, mas o Google
+ * passou a trata-lo como filtro: com `hd=fampfaculdade.com.br`, digitar uma
+ * conta fora do dominio termina em tela em branco no proprio Google — sem erro,
+ * sem retorno. Isso quebra exatamente as contas de EXCECAO em utils/dominio.js,
+ * que o sistema precisa aceitar.
+ *
+ * A trava de dominio continua nas quatro camadas de sempre: cliente, regras do
+ * Firestore, regras do Storage e funcoes da API.
+ */
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 if (import.meta.env.VITE_USAR_EMULADORES === 'true') {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });

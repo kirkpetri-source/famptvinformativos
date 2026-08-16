@@ -7,9 +7,12 @@ import Porta from '../components/Porta.jsx';
 import { DOMINIO_INSTITUCIONAL } from '../utils/dominio.js';
 
 export default function Login() {
-  const { carregando, user, acesso, precisaCadastro, isAdmin } = useAuth();
+  const { carregando, user, acesso, precisaCadastro, isAdmin, erroLogin } = useAuth();
   const [entrando, setEntrando] = useState(false);
-  const [erro, setErro] = useState(null);
+  const [erroLocal, setErroLocal] = useState(null);
+
+  // O erro do redirect vem do provedor, ja que a pagina foi recarregada.
+  const erro = erroLocal ?? (erroLogin ? traduzirErro(erroLogin) : null);
 
   if (carregando) return <Carregando />;
 
@@ -20,12 +23,13 @@ export default function Login() {
   }
 
   async function entrar() {
-    setErro(null);
+    setErroLocal(null);
     setEntrando(true);
     try {
+      // No celular isto sai da pagina: nao ha estado para desligar depois.
       await entrarComGoogle();
     } catch (e) {
-      setErro(traduzirErro(e));
+      setErroLocal(traduzirErro(e));
       setEntrando(false);
     }
   }
@@ -93,6 +97,15 @@ function traduzirErro(e) {
   }
   if (codigo === 'auth/unauthorized-domain') {
     return 'Este endereço não está autorizado no Firebase Authentication. Avise a coordenação.';
+  }
+  if (codigo === 'auth/redirect-cancelled-by-user' || codigo === 'auth/user-cancelled') {
+    return null;
+  }
+  if (codigo === 'auth/web-storage-unsupported') {
+    return 'Seu navegador está bloqueando os dados do site. Saia do modo anônimo ou libere os cookies para este endereço.';
+  }
+  if (codigo === 'auth/account-exists-with-different-credential') {
+    return 'Já existe uma conta com este e-mail criada por outro método de login. Avise a coordenação.';
   }
   if (codigo === 'auth/network-request-failed') {
     return 'Sem conexão com o servidor. Verifique sua internet e tente de novo.';

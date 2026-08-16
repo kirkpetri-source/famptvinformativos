@@ -96,6 +96,23 @@ mude em `src/utils/dominio.js`, `api/_lib/dominio.js`, `firestore.rules` e
 - Índices do Firestore que só falham em execução real (cron e API), nunca no
   build: já estão em `firestore.indexes.json`. Ao criar consulta nova, rode o
   cron e confira `erros`.
+- **`hd` no Google Sign-In não é dica, é filtro.** Com `hd=fampfaculdade.com.br`
+  no provedor, digitar uma conta de fora do domínio termina em tela branca no
+  próprio Google — sem erro, sem retorno. Quebrava justamente as contas de
+  `EXCECOES`. Removido; a trava de domínio continua nas quatro camadas.
+- **`signInWithPopup` não funciona em celular.** O popup depende de `postMessage`
+  e de vigiar `popup.closed`; o Google serve a página com
+  Cross-Origin-Opener-Policy, que corta o vínculo com a aba de origem. No desktop
+  isso só polui o console com "would block the window.closed call"; no celular a
+  aba fica branca. Em móvel e em webview de app, use `signInWithRedirect` —
+  `entrarComGoogle()` já decide sozinho, e `useAuth` consome o
+  `getRedirectResult` no carregamento.
+- **Redirect exige handler na mesma origem.** Safari e Firefox bloqueiam o
+  armazenamento de terceiros em `*.firebaseapp.com` e o retorno se perde em
+  silêncio. O `vercel.json` faz proxy de `/__/auth` e `/__/firebase`; falta
+  apontar `VITE_FIREBASE_AUTH_DOMAIN` para o domínio do app e cadastrar
+  `https://DOMINIO/__/auth/handler` nas URIs de redirecionamento do cliente OAuth
+  no Google Cloud Console. Sem o cadastro, dá `redirect_uri_mismatch`.
 - CSV: BOM `﻿` e prefixo `'` em campo iniciado por `=`, `+`, `-`, `@`.
 - E-mail: escapar HTML de tudo que vem do banco.
 
